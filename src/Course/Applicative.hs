@@ -61,8 +61,7 @@ infixl 4 <*>
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Applicative#(<$>)"
+f <$> x = pure f <*> x
 
 -- | Insert into Id.
 --
@@ -75,13 +74,12 @@ instance Applicative Id where
     a
     -> Id a
   pure =
-    error "todo: Course.Applicative pure#instance Id"
-  (<*>) :: 
+      Id
+  (<*>) ::
     Id (a -> b)
     -> Id a
     -> Id b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance Id"
+  Id f <*> Id x = Id $ f x
 
 -- | Insert into a List.
 --
@@ -93,14 +91,12 @@ instance Applicative List where
   pure ::
     a
     -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
+  pure = (:. Nil)
   (<*>) ::
     List (a -> b)
     -> List a
     -> List b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance List"
+  fs <*> xs = flatMap (\f -> map f xs) fs
 
 -- | Insert into an Optional.
 --
@@ -118,14 +114,14 @@ instance Applicative Optional where
   pure ::
     a
     -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
+  pure = Full
   (<*>) ::
     Optional (a -> b)
     -> Optional a
     -> Optional b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance Optional"
+  Empty <*> _ = Empty
+  Full f <*> x = P.fmap f x
+
 
 -- | Insert into a constant function.
 --
@@ -149,14 +145,12 @@ instance Applicative ((->) t) where
   pure ::
     a
     -> ((->) t a)
-  pure =
-    error "todo: Course.Applicative pure#((->) t)"
+  pure = const
   (<*>) ::
     ((->) t (a -> b))
     -> ((->) t a)
     -> ((->) t b)
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance ((->) t)"
+  f <*> g = \x -> f x (g x)
 
 
 -- | Apply a binary function in the environment.
@@ -184,8 +178,7 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 =
-  error "todo: Course.Applicative#lift2"
+lift2 f x y = f <$> x <*> y
 
 -- | Apply a ternary function in the environment.
 --
@@ -216,8 +209,7 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo: Course.Applicative#lift3"
+lift3 f x y z = f <$> x <*> y <*> z
 
 -- | Apply a quaternary function in the environment.
 --
@@ -249,8 +241,7 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo: Course.Applicative#lift4"
+lift4 f x y z u = f <$> x <*> y <*> z <*> u
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -275,8 +266,7 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo: Course.Applicative#(*>)"
+x *> y = flip const <$> x <*> y
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -301,8 +291,7 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo: Course.Applicative#(<*)"
+x <* y = const <$> x <*> y
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -324,8 +313,7 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence = foldRight (\x y -> (:.) <$> x <*> y) (pure Nil)
 
 -- | Replicate an effect a given number of times.
 --
@@ -348,8 +336,8 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA 0 _ = pure Nil
+replicateA n x = (:.) <$> x <*> replicateA (n-1) x
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -376,8 +364,13 @@ filtering ::
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+filtering _ Nil = pure Nil
+filtering p (x :. r) =
+  (\a ->
+    if a then (x :.)
+         else id)
+  <$> p x
+  <*> filtering p r
 
 -----------------------
 -- SUPPORT LIBRARIES --

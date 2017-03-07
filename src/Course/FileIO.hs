@@ -52,7 +52,7 @@ To test this module, load ghci in the root of the project directory, and do
 Example output:
 
 $ ghci
-GHCi, version ... 
+GHCi, version ...
 Loading package...
 Loading ...
 [ 1 of 28] Compiling (etc...
@@ -74,7 +74,11 @@ the contents of c
 main ::
   IO ()
 main =
-  error "todo: Course.FileIO#main"
+    getArgs >>= \argv ->
+    let argc = length argv in
+    if (argc /= 1)
+        then putStrLn "One single argument is needed"
+        else run $ headOr "NoFile" argv
 
 type FilePath =
   Chars
@@ -83,31 +87,32 @@ type FilePath =
 run ::
   Chars
   -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run filename =
+    lines <$> readFile filename >>= \files ->
+    getFiles files >>= \contents ->
+    printFiles contents
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo: Course.FileIO#getFiles"
+getFiles = sequence . map getFile
 
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile fp =
+    readFile fp >>= \content ->
+    return (fp, content)
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+printFiles l = sequence (map (\(x,y) -> printFile x y) l) *> return ()
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
+printFile fp content=
+    putStrLn ("============ " ++ fp ++ "\n" ++ content)
 

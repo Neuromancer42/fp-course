@@ -83,7 +83,11 @@ data Op =
 convertInteractive ::
   IO ()
 convertInteractive =
-  error "todo: Course.Interactive#convertInteractive"
+  do
+    putStr "Input a string to convert: "
+    s <- getLine
+    putStr "Result: "
+    putStrLn (map toUpper s)
 
 -- |
 --
@@ -111,7 +115,13 @@ convertInteractive =
 reverseInteractive ::
   IO ()
 reverseInteractive =
-  error "todo: Course.Interactive#reverseInteractive"
+  do
+    putStr "Enter the filename to reverse: "
+    f1 <- getLine
+    putStr "Enter the filename to write the result in: "
+    f2 <- getLine
+    s <- readFile f1
+    writeFile f2 (reverse s)
 
 -- |
 --
@@ -137,7 +147,18 @@ reverseInteractive =
 encodeInteractive ::
   IO ()
 encodeInteractive =
-  error "todo: Course.Interactive#encodeInteractive"
+  do
+    putStr "Enter a string to convert: "
+    s <- getLine
+    let s' = foldRight cons' [] s
+    putStr "The result is: "
+    putStrLn $ listh s'
+  where
+    cons' x xs
+      | x == ' ' = '%' : '2' : '0' : xs
+      | x == '\t' = '%' : '0' : '9' : xs
+      | x == '\"' = '%' : '2' : '2' : xs
+      | otherwise = x : xs
 
 interactive ::
   IO ()
